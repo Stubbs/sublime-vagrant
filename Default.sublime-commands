@@ -1,0 +1,22 @@
+[
+    {
+        "caption": "PHP Code Sniffer: Sniff this file",
+        "command": "phpcs_sniff_this_file"
+    },
+    {
+        "caption": "PHP Code Sniffer: Clear sniffer marks",
+        "command": "phpcs_clear_sniffer_marks"
+    },
+    {
+        "caption": "PHP Code Sniffer: Show previous errors",
+        "command": "phpcs_show_previous_errors"
+    },
+    {
+        "caption": "PHP Code Sniffer: Goto next error",
+        "command": "phpcs_goto_next_error"
+    },
+    {
+        "caption": "PHP Coding Standards Fixer: Fix this file",
+        "command": "phpcs_fix_this_file"
+    }
+]
