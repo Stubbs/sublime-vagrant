@@ -1,0 +1,19 @@
+Implements some common Vagrant commands.
+
+Status
+    Will show the status of this project's VM
+
+Up
+    Start's this project's VM
+
+Halt
+    Forcefully suspends the VM
+
+Suspend
+    Suspends the VM
+
+Destroy
+    Destroy's the VM. Be careful, you won't be asked to confirm.
+
+Destroy & Up
+    Destroys the VM and starts it again. Useful for reseting to a known position.
