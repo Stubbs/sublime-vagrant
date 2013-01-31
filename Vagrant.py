@@ -4,6 +4,18 @@ import threading
 import os, thread, functools, time
 from os.path import exists, isdir, dirname
 
+settings = sublime.load_settings('Vagrant.sublime-settings')
+
+class Prefs:
+    @staticmethod
+    def load():
+        Prefs.vagrant_path = settings.get('vagrant_path', "/usr/bin/vagrant")
+        Prefs.additional_args = settings.get('additional_args', {})
+
+Prefs.load()
+
+settings.add_on_change('vagrant_path', Prefs.load)
+
 class OutputView(object):
 #     '''Cribbed from Stu Herbert's phpunit plugin
 #     https://github.com/stuartherbert/sublime-phpunit/blob/master/phpunit.py#L97'''
@@ -163,15 +175,18 @@ class ShellCommand(object):
 
         self.vagrantConfigPath = vagrantConfigPath
 
-        # Check for any extra args the user wants to include.
-        # @TODO
-
-        # @TODO Check for executable path in the settings.
-        application_path = '/usr/bin/vagrant'
+        application_path = Prefs.vagrant_path
 
         args = [application_path]
 
         args.append(command)
+
+        # Check for any extra args the user wants to include.
+        for key, value in Prefs.additional_args.items():
+            arg = key
+            if value != "":
+                arg += "=" + value
+            args.append(arg)
 
         for key, value in params.items():
             arg = key
@@ -180,14 +195,6 @@ class ShellCommand(object):
                 arg += "=" + value
 
             args.append(arg)
-
-        # for key, value in Pref.phpcs_additional_args.items():
-        #     arg = key
-        #     if value != "":
-        #         arg += "=" + value
-        #     args.append(arg)
-
-        # args.append(os.path.normpath(path))
         
         self.output_view.append_line(' '.join(args))
 
@@ -218,6 +225,11 @@ class Vagrant(ShellCommand):
             if exists(folder + "/.git") and isdir(folder + "/.git"):
                 self.output_view.append_error('Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.')
                 raise Exception("Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.")
+
+            # Have we hit rock bottom?
+            if dirname(folder) == folder:
+                self.output_view.append_error('Unable to find root folder, sublime-vagrant only supports git right now.')
+                raise Exception("Unable to find root folder, sublime-vagrant only supports git right now.")
 
             # Try the next directory up.
             folder = dirname(folder)
