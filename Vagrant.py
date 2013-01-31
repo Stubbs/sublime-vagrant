@@ -15,6 +15,7 @@ class Prefs:
 Prefs.load()
 
 settings.add_on_change('vagrant_path', Prefs.load)
+settings.add_on_change('additional_args', Prefs.load)
 
 class OutputView(object):
 #     '''Cribbed from Stu Herbert's phpunit plugin
