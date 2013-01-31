@@ -1,4 +1,6 @@
-Implements some common Vagrant commands.
+# Sublime-vagrant
+
+## Implements common Vagrant commands.
 
 Status
     Will show the status of this project's VM
@@ -17,3 +19,15 @@ Destroy
 
 Destroy & Up
     Destroys the VM and starts it again. Useful for reseting to a known position.
+
+
+# Settings
+
+You can set up a different vagrant path if your Vagrat binary is not installed in the default location, or you're using Sublime-Vagrant on a windows machine.
+
+```{
+    "vagrant_path": "/usr/bin/vagrant",
+    "additional_args": ['-h', '-v']
+}```
+
+though there are very few additional arguments you can pass to Vagrant so by default there are none in the setting file.
