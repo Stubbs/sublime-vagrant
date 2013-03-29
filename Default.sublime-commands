@@ -26,5 +26,9 @@
     {
         "caption": "Vagrant: Halt",
         "command": "vagrant_halt"
+    },
+    {
+        "caption": "Vagrant: Provision",
+        "command": "vagrant_provision"
     }
 ]

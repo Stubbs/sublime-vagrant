@@ -289,6 +289,10 @@ class VagrantSuspend(Vagrant):
     def execute(self, path=''):
         self.run_command('suspend', self.getVagrantConfigPath())
 
+class VagrantProvision(Vagrant):
+    def execute(self, path=''):
+        self.run_command('provision', self.getVagrantConfigPath())
+
 class VagrantBaseCommand(sublime_plugin.ApplicationCommand):
     def run(self, paths=[]):
         print "Not implemented"
@@ -407,6 +411,13 @@ class VagrantStatusCommand(VagrantBaseCommand):
     def description(self):
         return 'Status of the Vagrant VM.'
 
+class VagrantProvisionCommand(VagrantBaseCommand):
+    description = 'Run any configured Vagrant provisioners.'
+
+    def run(self):
+        '''Run the configured provisioner configured on this VM'''
+        cmd = VagrantProvision()
+        cmd.execute()
 
 class VagrantInitCommand(VagrantBaseCommand):
     description = 'Initialise a new Vagrant project.'
