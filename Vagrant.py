@@ -171,7 +171,7 @@ class ShellCommand(object):
         self.proc = AsyncProcess(executable, cwd, self)
         StatusProcess(caption, self)
 
-    def run_command(self, command, vagrantConfigPath, params={}):
+    def run_command(self, command, vagrantConfigPath, params={}, async = True):
         args = []
 
         self.vagrantConfigPath = vagrantConfigPath
@@ -200,8 +200,10 @@ class ShellCommand(object):
         self.output_view.append_line(' '.join(args))
 
         #result = self.shell_out(args)
-        self.start_async("Running Vagrant ", args, vagrantConfigPath)
-
+        if async:
+            self.start_async("Running Vagrant ", args, vagrantConfigPath)
+        else:
+            self.shell_out(args)
     def execute(self, path=''):
         debug_message('Command not implemented')
 
@@ -253,7 +255,8 @@ class VagrantStatus(Vagrant):
 
 class VagrantDestroyUp(Vagrant):
     def execute(self, path=''):
-        self.run_command('destroy', self.getVagrantConfigPath())
+        self.run_command('destroy', self.getVagrantConfigPath(),
+                         {'--force': ''}, False)
         self.run_command('up', self.getVagrantConfigPath())
 
 class VagrantInit(Vagrant):
@@ -355,17 +358,6 @@ class VagrantUpCommand(VagrantBaseCommand):
 
     def description(self):
         return 'Start the Vagrant VM.'
-
-class VagrantDestroyUpCommand(VagrantBaseCommand):
-    description = 'Destroy & Start the Vagrant VM.'
-    
-    def run(self):
-        '''Reload the Vagrant config for this VM'''
-        cmd = VagrantDestroyUp()
-        cmd.execute()
-
-    def description(self):
-        return 'Reload the Vagrant config.'
 
 class VagrantDestroyUpCommand(VagrantBaseCommand):
     description = 'Destroy & Start the Vagrant VM.'
