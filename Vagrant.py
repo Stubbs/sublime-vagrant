@@ -159,7 +159,7 @@ class ShellCommand(object):
             if proc.stdout:
                 data = proc.communicate()[0]
 
-            return data
+            return (proc.returncode, data)
         except OSError as e:
             self.output_view.append_line('OS Error. (' + e.errno + " : " + e.strerror + ')')
 
@@ -203,7 +203,10 @@ class ShellCommand(object):
         if async:
             self.start_async("Running Vagrant ", args, vagrantConfigPath)
         else:
-            self.shell_out(args)
+            (returncode, data) = self.shell_out(args)
+            self.output_view.append_data(data)
+            return returncode
+
     def execute(self, path=''):
         debug_message('Command not implemented')
 
@@ -255,9 +258,10 @@ class VagrantStatus(Vagrant):
 
 class VagrantDestroyUp(Vagrant):
     def execute(self, path=''):
-        self.run_command('destroy', self.getVagrantConfigPath(),
-                         {'--force': ''}, False)
-        self.run_command('up', self.getVagrantConfigPath())
+        result = self.run_command('destroy', self.getVagrantConfigPath(),
+                                  {'--force': ''}, False)
+        if result == 0:
+            self.run_command('up', self.getVagrantConfigPath())
 
 class VagrantInit(Vagrant):
     def getVagrantConfigPath(self):
