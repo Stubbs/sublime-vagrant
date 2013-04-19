@@ -31,3 +31,8 @@ You can set up a different vagrant path if your Vagrat binary is not installed i
 }```
 
 though there are very few additional arguments you can pass to Vagrant so by default there are none in the setting file.
+
+# Contributors
+https://github.com/Stubbs/ - Original Author
+https://github.com/benmatselby - For the code to execute runtime commands.
+https://github.com/NaleagDeco - Bug fixes & improvments
