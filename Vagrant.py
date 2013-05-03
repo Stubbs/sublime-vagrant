@@ -282,6 +282,11 @@ class VagrantInit(Vagrant):
             if exists(folder + "/.git") and isdir(folder + "/.git"):
                 return folder
 
+            # Have we hit rock bottom?
+            if dirname(folder) == folder:
+                self.output_view.append_error('Unable to find root folder, sublime-vagrant only supports git right now.')
+                raise Exception("Unable to find root folder, sublime-vagrant only supports git right now.")
+
             # Try the next directory up.
             folder = dirname(folder)
 
@@ -318,6 +323,11 @@ class VagrantBaseCommand(sublime_plugin.ApplicationCommand):
             # If this directory has the git folder, stop.
             if exists(folder + "/.git") and isdir(folder + "/.git"):
                 raise Exception("Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.")
+
+            # Have we hit rock bottom?
+            if dirname(folder) == folder:
+                self.output_view.append_error('Unable to find root folder, sublime-vagrant only supports git right now.')
+                raise Exception("Unable to find root folder, sublime-vagrant only supports git right now.")
 
             # Try the next directory up.
             folder = dirname(folder)
