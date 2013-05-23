@@ -264,27 +264,6 @@ class VagrantDestroyUp(Vagrant):
             self.run_command('up', self.getVagrantConfigPath())
 
 class VagrantInit(Vagrant):
-    def getVagrantConfigPath(self):
-        window = sublime.active_window();
-        
-        folder = window.folders()[0]
-
-        found = False
-
-        while not found:
-            self.output_view.append_line(folder)
-
-            if exists(folder + "/Vagrantfile"):
-                self.output_view.append_error('This project already has a Vagrant config file.')
-                raise Exception("This project already has a Vagrant config file.")
-
-            # If this directory has the git folder, stop.
-            if exists(folder + "/.git") and isdir(folder + "/.git"):
-                return folder
-
-            # Try the next directory up.
-            folder = dirname(folder)
-
     def execute(self, path=''):
         self.run_command('init', self.getVagrantConfigPath())
 
@@ -300,31 +279,13 @@ class VagrantProvision(Vagrant):
     def execute(self, path=''):
         self.run_command('provision', self.getVagrantConfigPath())
 
-class VagrantBaseCommand(sublime_plugin.ApplicationCommand):
+class VagrantBaseCommand(sublime_plugin.WindowCommand):
     def run(self, paths=[]):
         print "Not implemented"
 
-    def getVagrantConfigPath(self):
-        window = sublime.active_window();
-        
-        folder = window.folders()[0]
-
-        found = False
-
-        while not found:
-            if exists(folder + "/Vagrantfile"):
-                return folder
-
-            # If this directory has the git folder, stop.
-            if exists(folder + "/.git") and isdir(folder + "/.git"):
-                raise Exception("Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.")
-
-            # Try the next directory up.
-            folder = dirname(folder)
-
     def is_enabled(self):
         try:
-            self.getVagrantConfigPath()
+            Vagrant().getVagrantConfigPath()
         except Exception:
             return False
 
