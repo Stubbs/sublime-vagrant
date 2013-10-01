@@ -36,3 +36,4 @@ though there are very few additional arguments you can pass to Vagrant so by def
 * https://github.com/Stubbs/ - Original Author
 * https://github.com/benmatselby - For the code to execute runtime commands.
 * https://github.com/NaleagDeco - Bug fixes & improvments
+* https://github.com/jbrooksuk - Sublime Text 3 support
