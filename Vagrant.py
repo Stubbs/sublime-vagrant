@@ -1,8 +1,12 @@
 import sublime, sublime_plugin
 import subprocess
 import threading
-import os, thread, functools, time
+import os, functools, time
 from os.path import exists, isdir, dirname
+try:    
+    import thread 
+except ImportError:
+    import _thread as thread #Py3K changed it.
 
 settings = sublime.load_settings('Vagrant.sublime-settings')
 
@@ -281,7 +285,7 @@ class VagrantProvision(Vagrant):
 
 class VagrantBaseCommand(sublime_plugin.WindowCommand):
     def run(self, paths=[]):
-        print "Not implemented"
+        print("Not implemented")
 
     def is_enabled(self):
         try:
