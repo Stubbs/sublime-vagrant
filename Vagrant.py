@@ -15,62 +15,13 @@ class Prefs:
     def load():
         Prefs.vagrant_path = settings.get('vagrant_path', "/usr/bin/vagrant")
         Prefs.additional_args = settings.get('additional_args', {})
+        Prefs.debug = settings.get('debug', False)
 
 Prefs.load()
 
 settings.add_on_change('vagrant_path', Prefs.load)
 settings.add_on_change('additional_args', Prefs.load)
-
-class OutputView(object):
-#     '''Cribbed from Stu Herbert's phpunit plugin
-#     https://github.com/stuartherbert/sublime-phpunit/blob/master/phpunit.py#L97'''
-    def __init__(self, name, window):
-        self.output_name = name
-        self.window = window
-
-    def show_output(self):
-        self.ensure_output_view()
-        self.window.run_command("show_panel", {"panel": "output." + self.output_name})
-
-    def show_empty_output(self):
-        self.ensure_output_view()
-        self.clear_output_view()
-        self.show_output()
-
-    def ensure_output_view(self):
-        if not hasattr(self, 'output_view'):
-            self.output_view = self.window.get_output_panel(self.output_name)
-
-    def clear_output_view(self):
-        self.ensure_output_view()
-        self.output_view.set_read_only(False)
-        edit = self.output_view.begin_edit()
-        self.output_view.erase(edit, sublime.Region(0, self.output_view.size()))
-        self.output_view.end_edit(edit)
-        self.output_view.set_read_only(True)
-
-    def append_data(self, data):
-        str = data.decode("utf-8")
-        str = str.replace('\r\n', '\n').replace('\r', '\n')
-
-        str = "[vagrant] " + str
-
-        # selection_was_at_end = (len(self.output_view.sel()) == 1
-        #  and self.output_view.sel()[0]
-        #    == sublime.Region(self.output_view.size()))
-        self.output_view.set_read_only(False)
-        edit = self.output_view.begin_edit()
-        self.output_view.insert(edit, self.output_view.size(), str)
-        #if selection_was_at_end:
-        self.output_view.show(self.output_view.size())
-        self.output_view.end_edit(edit)
-        self.output_view.set_read_only(True)
-
-    def append_line(self, data):
-        self.append_data(data + "\n")
-
-    def append_error(self, data):
-        self.append_data("Error: " + data + "\n")
+settings.add_on_change('debug', Prefs.load)
 
 # StatusProcess cribbed from:
 # https://github.com/stuartherbert/sublime-phpunit/blob/master/phpunit.py
@@ -139,23 +90,17 @@ class ShellCommand(object):
     def __init__(self):
         self.error_list = []
 
-        if not hasattr(self, 'output_view'):
-            self.output_view = OutputView('vagrant', sublime.active_window())
-
-        # Open the output window.
-        self.output_view.show_empty_output()
-
     def get_errors(self, path):
         self.execute(path)
         return self.error_list
 
     def append_line(self, message):
-        self.output_view.append_line(message)
+        print(message)
 
     def shell_out(self, cmd):
         try:
             data = None
-            self.output_view.append_line(' '.join(cmd))
+            print(' '.join(cmd))
 
             shell = sublime.platform() == "windows"
             proc = subprocess.Popen(cmd, cwd=self.vagrantConfigPath, stdout=subprocess.PIPE, shell=shell, stderr=subprocess.STDOUT)
@@ -165,7 +110,7 @@ class ShellCommand(object):
 
             return (proc.returncode, data)
         except OSError as e:
-            self.output_view.append_line('OS Error. (' + e.errno + " : " + e.strerror + ')')
+            print('OS Error. (' + e.errno + " : " + e.strerror + ')')
 
     def update_status(self, msg, progress):
         sublime.status_message(msg + " " + progress)
@@ -201,14 +146,14 @@ class ShellCommand(object):
 
             args.append(arg)
         
-        self.output_view.append_line(' '.join(args))
+        print(' '.join(args))
 
         #result = self.shell_out(args)
         if async:
             self.start_async("Running Vagrant ", args, vagrantConfigPath)
         else:
             (returncode, data) = self.shell_out(args)
-            self.output_view.append_data(data)
+            print(data)
             return returncode
 
     def execute(self, path=''):
@@ -226,19 +171,19 @@ class Vagrant(ShellCommand):
         found = False
 
         while not found:
-            self.output_view.append_line(folder)
+            print("Searching : " + folder)
 
             if exists(folder + "/Vagrantfile"):
                 return folder
 
             # If this directory has the git folder, stop.
             if exists(folder + "/.git") and isdir(folder + "/.git"):
-                self.output_view.append_error('Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.')
+                print('Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.')
                 raise Exception("Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.")
 
             # Have we hit rock bottom?
             if dirname(folder) == folder:
-                self.output_view.append_error('Unable to find root folder, sublime-vagrant only supports git right now.')
+                print('Unable to find root folder, sublime-vagrant only supports git right now.')
                 raise Exception("Unable to find root folder, sublime-vagrant only supports git right now.")
 
             # Try the next directory up.
@@ -283,12 +228,15 @@ class VagrantProvision(Vagrant):
     def execute(self, path=''):
         self.run_command('provision', self.getVagrantConfigPath())
 
-class VagrantBaseCommand(sublime_plugin.WindowCommand):
+class VagrantBaseCommand(sublime_plugin.TextCommand):
     def run(self, paths=[]):
         print("Not implemented")
 
     def is_enabled(self):
         try:
+            if Prefs.debug:
+                print('Vagrant config path found: ' . self.getVagrantConfigPath())
+
             Vagrant().getVagrantConfigPath()
         except Exception:
             return False
@@ -298,7 +246,7 @@ class VagrantBaseCommand(sublime_plugin.WindowCommand):
 class VagrantReloadCommand(VagrantBaseCommand):
     description = 'Reload the Vagrant VM.'
     
-    def run(self):
+    def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantReload()
         cmd.execute()
@@ -309,7 +257,7 @@ class VagrantReloadCommand(VagrantBaseCommand):
 class VagrantDestroyCommand(VagrantBaseCommand):
     description = 'Destroy the Vagrant VM.'
     
-    def run(self):
+    def run(self, args):
         '''Destroy the Vagrant config for this VM'''
         cmd = VagrantDestroy()
         cmd.execute()
@@ -320,7 +268,7 @@ class VagrantDestroyCommand(VagrantBaseCommand):
 class VagrantUpCommand(VagrantBaseCommand):
     description = 'Start the Vagrant VM.'
     
-    def run(self):
+    def run(self, args):
         '''Start the Vagrant config for this VM'''
         cmd = VagrantUp()
         cmd.execute()
@@ -331,7 +279,7 @@ class VagrantUpCommand(VagrantBaseCommand):
 class VagrantDestroyUpCommand(VagrantBaseCommand):
     description = 'Destroy & Start the Vagrant VM.'
     
-    def run(self):
+    def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantDestroyUp()
         cmd.execute()
@@ -342,7 +290,7 @@ class VagrantDestroyUpCommand(VagrantBaseCommand):
 class VagrantHaltCommand(VagrantBaseCommand):
     description = 'Forcefully halt the Vagrant VM.'
     
-    def run(self):
+    def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantHalt()
         cmd.execute()
@@ -353,7 +301,7 @@ class VagrantHaltCommand(VagrantBaseCommand):
 class VagrantSuspendCommand(VagrantBaseCommand):
     description = 'Suspend the Vagrant VM.'
     
-    def run(self):
+    def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantHalt()
         cmd.execute()
@@ -364,7 +312,7 @@ class VagrantSuspendCommand(VagrantBaseCommand):
 class VagrantStatusCommand(VagrantBaseCommand):
     description = 'Status of the Vagrant VM.'
     
-    def run(self):
+    def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantStatus()
         cmd.execute()
@@ -375,7 +323,7 @@ class VagrantStatusCommand(VagrantBaseCommand):
 class VagrantProvisionCommand(VagrantBaseCommand):
     description = 'Run any configured Vagrant provisioners.'
 
-    def run(self):
+    def run(self, args):
         '''Run the configured provisioner configured on this VM'''
         cmd = VagrantProvision()
         cmd.execute()
@@ -383,7 +331,7 @@ class VagrantProvisionCommand(VagrantBaseCommand):
 class VagrantInitCommand(VagrantBaseCommand):
     description = 'Initialise a new Vagrant project.'
     
-    def run(self):
+    def run(self, args):
         '''Start the Vagrant config for this VM'''
         cmd = VagrantInit()
         cmd.execute()
