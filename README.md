@@ -2,6 +2,7 @@
 
 ## Implements common Vagrant commands.
 
+- **Init** Create a new Vagrantfile in the root directory of your project.
 - **Status:** Will show the status of this project's VM
 - **Up:** Starts this project's VM
 - **Halt:** Forcefully suspends the VM
