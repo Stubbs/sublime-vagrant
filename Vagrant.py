@@ -1,27 +1,29 @@
 import sublime, sublime_plugin
 import subprocess
 import threading
-import os, functools, time
+import os, functools, time, sys
 from os.path import exists, isdir, dirname
 try:    
     import thread 
 except ImportError:
     import _thread as thread #Py3K changed it.
 
-settings = sublime.load_settings('Vagrant.sublime-settings')
+class PrefsMeta(type):
+    def __init__(self, class_name, bases, namespace):
+        self.settings = None;
+        self.default = {
+            'vagrant_path': "/usr/bin/vagrant",
+            'additional_args': {},
+            'debug': False
+        }
 
-class Prefs:
-    @staticmethod
-    def load():
-        Prefs.vagrant_path = settings.get('vagrant_path', "/usr/bin/vagrant")
-        Prefs.additional_args = settings.get('additional_args', {})
-        Prefs.debug = settings.get('debug', False)
+    def __getattr__(self, attr):
+        if(self.settings is None):
+            self.settings = sublime.load_settings('Vagrant.sublime-settings')
 
-Prefs.load()
+        return self.settings.get(attr,None if attr not in self.default else self.default[attr])
 
-settings.add_on_change('vagrant_path', Prefs.load)
-settings.add_on_change('additional_args', Prefs.load)
-settings.add_on_change('debug', Prefs.load)
+Prefs = PrefsMeta('Prefs', (object, ), {})
 
 # StatusProcess cribbed from:
 # https://github.com/stuartherbert/sublime-phpunit/blob/master/phpunit.py
@@ -67,7 +69,7 @@ class AsyncProcess(object):
     def read_stdout(self):
         while True:
             data = os.read(self.proc.stdout.fileno(), 2 ** 15)
-            if data != "":
+            if data:
                 sublime.set_timeout(functools.partial(self.listener.append_line, data), 0)
             else:
                 self.proc.stdout.close()
@@ -77,7 +79,7 @@ class AsyncProcess(object):
     def read_stderr(self):
         while True:
             data = os.read(self.proc.stderr.fileno(), 2 ** 15)
-            if data != "":
+            if data:
                 sublime.set_timeout(functools.partial(self.listener.append_line, data), 0)
             else:
                 self.proc.stderr.close()
@@ -95,7 +97,9 @@ class ShellCommand(object):
         return self.error_list
 
     def append_line(self, message):
-        print(message)
+        message_str = message.decode(sys.getdefaultencoding()).strip();
+        if message_str != "":
+            print(message_str)
 
     def shell_out(self, cmd):
         try:
@@ -234,10 +238,10 @@ class VagrantBaseCommand(sublime_plugin.TextCommand):
 
     def is_enabled(self):
         try:
-            if Prefs.debug:
-                print('Vagrant config path found: ' . self.getVagrantConfigPath())
+            path = Vagrant().getVagrantConfigPath()
 
-            Vagrant().getVagrantConfigPath()
+            if Prefs.debug:
+                print('Vagrant config path found: ' + path)
         except Exception:
             return False
 
