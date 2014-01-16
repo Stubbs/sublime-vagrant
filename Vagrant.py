@@ -307,7 +307,7 @@ class VagrantSuspendCommand(VagrantBaseCommand):
     
     def run(self, args):
         '''Reload the Vagrant config for this VM'''
-        cmd = VagrantHalt()
+        cmd = VagrantSuspend()
         cmd.execute()
 
     def description(self):
