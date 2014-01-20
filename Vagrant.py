@@ -13,6 +13,7 @@ class PrefsMeta(type):
         self.settings = None;
         self.default = {
             'vagrant_path': "/usr/bin/vagrant",
+            'vagrantfile_path': "",
             'additional_args': {},
             'debug': False
         }
@@ -171,6 +172,11 @@ class Vagrant(ShellCommand):
         window = sublime.active_window()
         
         folder = window.folders()[0]
+
+        vagrantfile_path = Prefs.vagrantfile_path
+
+        if(vagrantfile_path and exists(folder + vagrantfile_path + "/Vagrantfile")):
+            return folder + vagrantfile_path
 
         found = False
 
