@@ -8,7 +8,7 @@
         "command": "vagrant_destroy"
     },
     {
-        "caption": "Vagrant: Start",
+        "caption": "Vagrant: Up",
         "command": "vagrant_up"
     },
     {
