@@ -5,8 +5,11 @@
 - **Init** Create a new Vagrantfile in the root directory of your project.
 - **Status:** Will show the status of this project's VM
 - **Up:** Starts this project's VM
+- **Provision:** Runs configured provisioners
 - **Halt:** Forcefully suspends the VM
 - **Suspend:** Suspends the VM
+- **Resume:** Resumes the VM
+- **Reload:** Reloads Vagrantfile (equivalent to halt then up)
 - **Destroy:** Destroys the VM. Be careful, you won't be asked to confirm.
 - **Destroy & Up:** Destroys the VM and starts it again. Useful for resetting to a known position.
 
