@@ -17,9 +17,12 @@ You can set up a different vagrant path if your Vagrant binary is not installed 
 ```json
 {
     "vagrant_path": "/usr/bin/vagrant",
+    "vagrantfile_path": "/vagrant",
     "additional_args": ['-h', '-v']
 }
 ```
+
+By default Sublime-Vagrant will scan your first open folder and traverse up from there looking for a Vagrantfile, alternatively you may provide the "vagrantfile_path" setting which allows you to manually specify a relative path.
 
 There are very few additional arguments you can pass to Vagrant so by default there are none in the setting file.
 
