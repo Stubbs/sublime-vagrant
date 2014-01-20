@@ -20,6 +20,10 @@
         "command": "vagrant_init"
     },
     {
+        "caption": "Vagrant: Status",
+        "command": "vagrant_status"
+    },
+    {
         "caption": "Vagrant: Suspend",
         "command": "vagrant_suspend"
     },
