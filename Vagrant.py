@@ -168,7 +168,7 @@ class Vagrant(ShellCommand):
         super(Vagrant, self).__init__()
 
     def getVagrantConfigPath(self):
-        window = sublime.active_window();
+        window = sublime.active_window()
         
         folder = window.folders()[0]
 
