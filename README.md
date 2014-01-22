@@ -34,3 +34,7 @@ There are very few additional arguments you can pass to Vagrant so by default th
 * https://github.com/benmatselby - For the code to execute runtime commands.
 * https://github.com/NaleagDeco - Bug fixes & improvements
 * https://github.com/jbrooksuk - Sublime Text 3 support
+* https://github.com/arosolino - Bugfixes & missing Vagrant commands
+* https://github.com/timcooper - Bugfixes & extra Vagrant commands
+
+If you submit any bigfixes or improvments, don't forget to add yourself to the list of contributors.
