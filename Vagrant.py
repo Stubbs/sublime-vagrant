@@ -264,7 +264,7 @@ class VagrantResume(Vagrant):
 
 class VagrantRsync(Vagrant):
     def execute(self, path=''):
-        return self.run_command('rsync', self.getVagrantConfigPath())
+        self.run_command('rsync', self.getVagrantConfigPath())
 
 
 class VagrantBaseCommand(sublime_plugin.TextCommand):
