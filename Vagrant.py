@@ -1,16 +1,20 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 import subprocess
-import threading
-import os, functools, time, sys
+import os
+import functools
+import time
+import sys
 from os.path import exists, isdir, dirname
-try:    
-    import thread 
+try:
+    import thread
 except ImportError:
-    import _thread as thread #Py3K changed it.
+    import _thread as thread  # Py3K changed it.
+
 
 class PrefsMeta(type):
     def __init__(self, class_name, bases, namespace):
-        self.settings = None;
+        self.settings = None
         self.default = {
             'vagrant_path': "/usr/bin/vagrant",
             'vagrantfile_path': "",
@@ -22,9 +26,10 @@ class PrefsMeta(type):
         if(self.settings is None):
             self.settings = sublime.load_settings('Vagrant.sublime-settings')
 
-        return self.settings.get(attr,None if attr not in self.default else self.default[attr])
+        return self.settings.get(attr, None if attr not in self.default else self.default[attr])
 
 Prefs = PrefsMeta('Prefs', (object, ), {})
+
 
 # StatusProcess cribbed from:
 # https://github.com/stuartherbert/sublime-phpunit/blob/master/phpunit.py
@@ -50,10 +55,11 @@ class StatusProcess(object):
 # https://github.com/stuartherbert/sublime-phpunit/blob/master/phpunit.py
 # and in turn: https://github.com/maltize/sublime-text-2-ruby-tests/blob/master/run_ruby_test.py
 
+
 class AsyncProcess(object):
     def __init__(self, cmd, cwd, listener):
         self.listener = listener
-        
+
         if os.name == 'nt':
             # we have to run PHPUnit via the shell to get it to work for everyone on Windows
             # no idea why :(
@@ -88,6 +94,7 @@ class AsyncProcess(object):
 
                 break
 
+
 class ShellCommand(object):
     """Base class for shelling out a command to the terminal"""
     def __init__(self):
@@ -98,7 +105,7 @@ class ShellCommand(object):
         return self.error_list
 
     def append_line(self, message):
-        message_str = message.decode(sys.getdefaultencoding()).strip();
+        message_str = message.decode(sys.getdefaultencoding()).strip()
         if message_str != "":
             print(message_str)
 
@@ -125,7 +132,7 @@ class ShellCommand(object):
         self.proc = AsyncProcess(executable, cwd, self)
         StatusProcess(caption, self)
 
-    def run_command(self, command, vagrantConfigPath, params={}, async = True):
+    def run_command(self, command, vagrantConfigPath, params={}, async=True):
         args = []
 
         self.vagrantConfigPath = vagrantConfigPath
@@ -150,7 +157,7 @@ class ShellCommand(object):
                 arg += "=" + value
 
             args.append(arg)
-        
+
         print(' '.join(args))
 
         #result = self.shell_out(args)
@@ -162,7 +169,9 @@ class ShellCommand(object):
             return returncode
 
     def execute(self, path=''):
-        debug_message('Command not implemented')
+        #debug_message('Command not implemented')
+        print('Command not implemented')
+
 
 class Vagrant(ShellCommand):
     def __init__(self):
@@ -170,7 +179,7 @@ class Vagrant(ShellCommand):
 
     def getVagrantConfigPath(self):
         window = sublime.active_window()
-        
+
         folder = window.folders()[0]
 
         vagrantfile_path = Prefs.vagrantfile_path
@@ -199,21 +208,26 @@ class Vagrant(ShellCommand):
             # Try the next directory up.
             folder = dirname(folder)
 
+
 class VagrantReload(Vagrant):
     def execute(self, path=''):
         self.run_command('reload', self.getVagrantConfigPath())
+
 
 class VagrantDestroy(Vagrant):
     def execute(self, path=''):
         self.run_command('destroy', self.getVagrantConfigPath(), {'--force': ''})
 
+
 class VagrantUp(Vagrant):
     def execute(self, path=''):
         self.run_command('up', self.getVagrantConfigPath())
 
+
 class VagrantStatus(Vagrant):
     def execute(self, path=''):
         self.run_command('status', self.getVagrantConfigPath())
+
 
 class VagrantDestroyUp(Vagrant):
     def execute(self, path=''):
@@ -222,25 +236,36 @@ class VagrantDestroyUp(Vagrant):
         if result == 0:
             self.run_command('up', self.getVagrantConfigPath())
 
+
 class VagrantInit(Vagrant):
     def execute(self, path=''):
         self.run_command('init', self.getVagrantConfigPath())
+
 
 class VagrantHalt(Vagrant):
     def execute(self, path=''):
         self.run_command('halt', self.getVagrantConfigPath())
 
+
 class VagrantSuspend(Vagrant):
     def execute(self, path=''):
         self.run_command('suspend', self.getVagrantConfigPath())
+
 
 class VagrantProvision(Vagrant):
     def execute(self, path=''):
         self.run_command('provision', self.getVagrantConfigPath())
 
+
 class VagrantResume(Vagrant):
     def execute(self, path=''):
         self.run_command('resume', self.getVagrantConfigPath())
+
+
+class VagrantRsync(Vagrant):
+    def execute(self, path=''):
+        return self.run_command('rsync', self.getVagrantConfigPath())
+
 
 class VagrantBaseCommand(sublime_plugin.TextCommand):
     def run(self, paths=[]):
@@ -257,9 +282,10 @@ class VagrantBaseCommand(sublime_plugin.TextCommand):
 
         return True
 
+
 class VagrantReloadCommand(VagrantBaseCommand):
     description = 'Reload the Vagrant VM.'
-    
+
     def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantReload()
@@ -268,9 +294,10 @@ class VagrantReloadCommand(VagrantBaseCommand):
     def description(self):
         return 'Reload the Vagrant config.'
 
+
 class VagrantDestroyCommand(VagrantBaseCommand):
     description = 'Destroy the Vagrant VM.'
-    
+
     def run(self, args):
         '''Destroy the Vagrant config for this VM'''
         cmd = VagrantDestroy()
@@ -279,9 +306,10 @@ class VagrantDestroyCommand(VagrantBaseCommand):
     def description(self):
         return 'Destroy the Vagrant config.'
 
+
 class VagrantUpCommand(VagrantBaseCommand):
     description = 'Start the Vagrant VM.'
-    
+
     def run(self, args):
         '''Start the Vagrant config for this VM'''
         cmd = VagrantUp()
@@ -290,9 +318,10 @@ class VagrantUpCommand(VagrantBaseCommand):
     def description(self):
         return 'Start the Vagrant VM.'
 
+
 class VagrantDestroyUpCommand(VagrantBaseCommand):
     description = 'Destroy & Start the Vagrant VM.'
-    
+
     def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantDestroyUp()
@@ -301,9 +330,10 @@ class VagrantDestroyUpCommand(VagrantBaseCommand):
     def description(self):
         return 'Reload the Vagrant config.'
 
+
 class VagrantHaltCommand(VagrantBaseCommand):
     description = 'Forcefully halt the Vagrant VM.'
-    
+
     def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantHalt()
@@ -312,9 +342,10 @@ class VagrantHaltCommand(VagrantBaseCommand):
     def description(self):
         return 'Forcefully halt the Vagrant VM.'
 
+
 class VagrantSuspendCommand(VagrantBaseCommand):
     description = 'Suspend the Vagrant VM.'
-    
+
     def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantSuspend()
@@ -323,9 +354,10 @@ class VagrantSuspendCommand(VagrantBaseCommand):
     def description(self):
         return 'Suspend the Vagrant VM.'
 
+
 class VagrantStatusCommand(VagrantBaseCommand):
     description = 'Status of the Vagrant VM.'
-    
+
     def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantStatus()
@@ -333,6 +365,7 @@ class VagrantStatusCommand(VagrantBaseCommand):
 
     def description(self):
         return 'Status of the Vagrant VM.'
+
 
 class VagrantProvisionCommand(VagrantBaseCommand):
     description = 'Run any configured Vagrant provisioners.'
@@ -342,9 +375,10 @@ class VagrantProvisionCommand(VagrantBaseCommand):
         cmd = VagrantProvision()
         cmd.execute()
 
+
 class VagrantResumeCommand(VagrantBaseCommand):
     description = 'Resume the Vagrant VM.'
-    
+
     def run(self, args):
         '''Reload the Vagrant config for this VM'''
         cmd = VagrantResume()
@@ -353,9 +387,10 @@ class VagrantResumeCommand(VagrantBaseCommand):
     def description(self):
         return 'Resume the Vagrant VM.'
 
+
 class VagrantInitCommand(VagrantBaseCommand):
     description = 'Initialise a new Vagrant project.'
-    
+
     def run(self, args):
         '''Start the Vagrant config for this VM'''
         cmd = VagrantInit()
@@ -366,3 +401,18 @@ class VagrantInitCommand(VagrantBaseCommand):
 
     def description(self):
         return 'Initialise a new Vagrant project.'
+
+
+class VagrantRsyncCommand(VagrantBaseCommand):
+    description = 'Rsync files from host machine to guest machine'
+
+    def run(self, args):
+        '''Rsyncing Files'''
+        cmd = VagrantRsync()
+        cmd.execute()
+
+    def is_enabled(self):
+        return True
+
+    def description(self):
+        return 'Rsync files from host machine to guest machine.'
