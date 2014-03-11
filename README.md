@@ -12,6 +12,7 @@
 - **Reload:** Reloads Vagrantfile (equivalent to halt then up)
 - **Destroy:** Destroys the VM. Be careful, you won't be asked to confirm.
 - **Destroy & Up:** Destroys the VM and starts it again. Useful for resetting to a known position.
+- **Rsync:** Rsync files from host to guest.
 
 ## Settings
 
@@ -36,5 +37,6 @@ There are very few additional arguments you can pass to Vagrant so by default th
 * https://github.com/jbrooksuk - Sublime Text 3 support
 * https://github.com/arosolino - Bugfixes & missing Vagrant commands
 * https://github.com/timcooper - Bugfixes & extra Vagrant commands
+* https://github.com/fxdgear - pep8 and adding Rsync command
 
 If you submit any bigfixes or improvments, don't forget to add yourself to the list of contributors.

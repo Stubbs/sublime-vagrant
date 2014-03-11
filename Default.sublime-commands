@@ -38,5 +38,9 @@
     {
         "caption": "Vagrant: Resume",
         "command": "vagrant_resume"
+    },
+    {
+        "caption": "Vagrant: Rsync",
+        "command": "vagrant_rsync"
     }
 ]
