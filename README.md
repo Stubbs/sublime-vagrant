@@ -39,4 +39,4 @@ There are very few additional arguments you can pass to Vagrant so by default th
 * https://github.com/timcooper - Bugfixes & extra Vagrant commands
 * https://github.com/fxdgear - pep8 and adding Rsync command
 
-If you submit any bigfixes or improvments, don't forget to add yourself to the list of contributors.
+If you submit any bug fixes or improvements, don't forget to add yourself to the list of contributors.
