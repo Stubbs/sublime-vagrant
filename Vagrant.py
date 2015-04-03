@@ -20,7 +20,8 @@ class PrefsMeta(type):
             'vagrant_path': "/usr/bin/vagrant",
             'vagrantfile_path': "",
             'additional_args': {},
-            'debug': False
+            'debug': False,
+            'output_to_window': False
         }
 
     def __getattr__(self, attr):
@@ -90,11 +91,10 @@ class StatusProcess(object):
             else:
                 break
 
+
 # the AsyncProcess class has been cribbed from:
 # https://github.com/stuartherbert/sublime-phpunit/blob/master/phpunit.py
 # and in turn: https://github.com/maltize/sublime-text-2-ruby-tests/blob/master/run_ruby_test.py
-
-
 class AsyncProcess(object):
     def __init__(self, cmd, cwd, listener):
         self.listener = listener
@@ -139,6 +139,8 @@ class ShellCommand(object):
     def __init__(self):
         self.error_list = []
         self.vagrantConfigPath = Prefs.get_vagrantfile_path()
+        self.output_view = None
+        self.output_messages = ""
 
     def get_errors(self, path):
         self.execute(path)
@@ -147,7 +149,14 @@ class ShellCommand(object):
     def append_line(self, message):
         message_str = message.decode(sys.getdefaultencoding()).strip()
         if message_str != "":
+            self.output_messages += message_str + "\n"
+
+            # Print to the console
             print(message_str)
+
+            if Prefs.output_to_window == True:
+                # Print to the window if configured
+                self.output_view.run_command('vagrant_output', {'console_output': self.output_messages})
 
     def shell_out(self, cmd):
         try:
@@ -198,7 +207,10 @@ class ShellCommand(object):
 
         print(' '.join(args))
 
-        #result = self.shell_out(args)
+        if Prefs.output_to_window == True:
+            self.output_view = sublime.active_window().new_file();
+            self.output_messages = 'Vagrant Command: ' + ' '.join(args) + "\n\n"
+
         if async:
             self.start_async("Running Vagrant ", args, self.vagrantConfigPath)
         else:
@@ -422,3 +434,10 @@ class VagrantRsyncCommand(VagrantBaseCommand):
 
     def description(self):
         return 'Rsync files from host machine to guest machine.'
+
+
+class VagrantOutputCommand(sublime_plugin.TextCommand):
+    def run(self, edit, **args):
+        sizeBefore = self.view.size()
+        self.view.insert(edit, sizeBefore, args.get('console_output')[sizeBefore:])
+        self.view.show(self.view.size())

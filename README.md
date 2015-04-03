@@ -22,7 +22,8 @@ You can set up a different vagrant path if your Vagrant binary is not installed 
 {
     "vagrant_path": "/usr/bin/vagrant",
     "vagrantfile_path": "/vagrant",
-    "additional_args": ['-h', '-v']
+    "additional_args": ['-h', '-v'],
+    "output_to_window": true
 }
 ```
 
