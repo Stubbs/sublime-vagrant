@@ -15,6 +15,7 @@ except ImportError:
 class PrefsMeta(type):
     def __init__(self, class_name, bases, namespace):
         self.settings = None
+        self.validVagrantfilePath = False
         self.default = {
             'vagrant_path': "/usr/bin/vagrant",
             'vagrantfile_path': "",
@@ -27,6 +28,44 @@ class PrefsMeta(type):
             self.settings = sublime.load_settings('Vagrant.sublime-settings')
 
         return self.settings.get(attr, None if attr not in self.default else self.default[attr])
+
+    def get_vagrantfile_path(self):
+        if self.validVagrantfilePath:
+            return self.validVagrantfilePath
+        else:
+            window = sublime.active_window()
+            folder = window.folders()[0]
+            vagrantfile_path = Prefs.vagrantfile_path
+
+            if vagrantfile_path and exists(folder + vagrantfile_path + "/Vagrantfile"):
+                self.validVagrantfilePath = folder + vagrantfile_path
+                return self.validVagrantfilePath
+
+            if exists(vagrantfile_path + "/Vagrantfile"):
+                self.validVagrantfilePath = vagrantfile_path
+                return self.validVagrantfilePath
+
+            found = False
+
+            while not found:
+                print("Searching : " + folder)
+
+                if exists(folder + "/Vagrantfile"):
+                    self.validVagrantfilePath = folder
+                    return self.validVagrantfilePath
+
+                # If this directory has the git folder, stop.
+                if exists(folder + "/.git") and isdir(folder + "/.git"):
+                    print('Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.')
+                    raise Exception("Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.")
+
+                # Have we hit rock bottom?
+                if dirname(folder) == folder:
+                    print('Unable to find root folder, sublime-vagrant only supports git right now.')
+                    raise Exception("Unable to find root folder, sublime-vagrant only supports git right now.")
+
+                # Try the next directory up.
+                folder = dirname(folder)
 
 Prefs = PrefsMeta('Prefs', (object, ), {})
 
@@ -99,6 +138,7 @@ class ShellCommand(object):
     """Base class for shelling out a command to the terminal"""
     def __init__(self):
         self.error_list = []
+        self.vagrantConfigPath = Prefs.get_vagrantfile_path()
 
     def get_errors(self, path):
         self.execute(path)
@@ -132,10 +172,8 @@ class ShellCommand(object):
         self.proc = AsyncProcess(executable, cwd, self)
         StatusProcess(caption, self)
 
-    def run_command(self, command, vagrantConfigPath, params={}, async=True):
+    def run_command(self, command, params={}, async=True):
         args = []
-
-        self.vagrantConfigPath = vagrantConfigPath
 
         application_path = Prefs.vagrant_path
 
@@ -162,7 +200,7 @@ class ShellCommand(object):
 
         #result = self.shell_out(args)
         if async:
-            self.start_async("Running Vagrant ", args, vagrantConfigPath)
+            self.start_async("Running Vagrant ", args, self.vagrantConfigPath)
         else:
             (returncode, data) = self.shell_out(args)
             print(data)
@@ -174,97 +212,65 @@ class ShellCommand(object):
 
 
 class Vagrant(ShellCommand):
+
     def __init__(self):
         super(Vagrant, self).__init__()
 
-    def getVagrantConfigPath(self):
-        window = sublime.active_window()
-
-        folder = window.folders()[0]
-
-        vagrantfile_path = Prefs.vagrantfile_path
-
-        if(vagrantfile_path and exists(folder + vagrantfile_path + "/Vagrantfile")):
-            return folder + vagrantfile_path
-
-        found = False
-
-        while not found:
-            print("Searching : " + folder)
-
-            if exists(folder + "/Vagrantfile"):
-                return folder
-
-            # If this directory has the git folder, stop.
-            if exists(folder + "/.git") and isdir(folder + "/.git"):
-                print('Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.')
-                raise Exception("Unable to find Vagrantfile, found .git folder and assumed this is the root of your project.")
-
-            # Have we hit rock bottom?
-            if dirname(folder) == folder:
-                print('Unable to find root folder, sublime-vagrant only supports git right now.')
-                raise Exception("Unable to find root folder, sublime-vagrant only supports git right now.")
-
-            # Try the next directory up.
-            folder = dirname(folder)
-
-
 class VagrantReload(Vagrant):
     def execute(self, path=''):
-        self.run_command('reload', self.getVagrantConfigPath())
+        self.run_command('reload')
 
 
 class VagrantDestroy(Vagrant):
     def execute(self, path=''):
-        self.run_command('destroy', self.getVagrantConfigPath(), {'--force': ''})
+        self.run_command('destroy', {'--force': ''})
 
 
 class VagrantUp(Vagrant):
     def execute(self, path=''):
-        self.run_command('up', self.getVagrantConfigPath())
+        self.run_command('up')
 
 
 class VagrantStatus(Vagrant):
     def execute(self, path=''):
-        self.run_command('status', self.getVagrantConfigPath())
+        self.run_command('status')
 
 
 class VagrantDestroyUp(Vagrant):
     def execute(self, path=''):
-        result = self.run_command('destroy', self.getVagrantConfigPath(),
-                                  {'--force': ''}, False)
+        result = self.run_command('destroy', {'--force': ''}, False)
         if result == 0:
-            self.run_command('up', self.getVagrantConfigPath())
+            self.run_command('up')
 
 
 class VagrantInit(Vagrant):
     def execute(self, path=''):
-        self.run_command('init', self.getVagrantConfigPath())
+        self.run_command('init')
 
 
 class VagrantHalt(Vagrant):
     def execute(self, path=''):
-        self.run_command('halt', self.getVagrantConfigPath())
+        self.run_command('halt')
 
 
 class VagrantSuspend(Vagrant):
     def execute(self, path=''):
-        self.run_command('suspend', self.getVagrantConfigPath())
+        self.run_command('suspend')
 
 
 class VagrantProvision(Vagrant):
     def execute(self, path=''):
-        self.run_command('provision', self.getVagrantConfigPath())
+        self.run_command('provision')
 
 
 class VagrantResume(Vagrant):
     def execute(self, path=''):
-        self.run_command('resume', self.getVagrantConfigPath())
+        self.run_command('resume')
 
 
 class VagrantRsync(Vagrant):
     def execute(self, path=''):
-        self.run_command('rsync', self.getVagrantConfigPath())
+        self.run_command('rsync')
 
 
 class VagrantBaseCommand(sublime_plugin.TextCommand):
@@ -273,7 +279,7 @@ class VagrantBaseCommand(sublime_plugin.TextCommand):
 
     def is_enabled(self):
         try:
-            path = Vagrant().getVagrantConfigPath()
+            path = Prefs.get_vagrantfile_path()
 
             if Prefs.debug:
                 print('Vagrant config path found: ' + path)
