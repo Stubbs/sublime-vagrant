@@ -1,3 +1,4 @@
 {
-    "vagrant_path": "/usr/bin/vagrant"
+    "vagrant_path": "/usr/bin/vagrant",
+    "output_to_window": false
 }
